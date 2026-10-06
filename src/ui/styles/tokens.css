@@ -1,0 +1,58 @@
+/* APDL Dojo design tokens (plan §6 UI). Dark engineering theme, 8-px grid, no shadows. */
+:root {
+  color-scheme: dark;
+  --bg: #0b0e14;
+  --bg-1: #121722;
+  --bg-2: #182030;
+  --bg-3: #1f2a3d;
+  --line: #273043;
+  --line-2: #34405a;
+  --fg: #d7dee9;
+  --fg-dim: #8a96ab;
+  --fg-faint: #5d6880;
+  --accent: #ffb000;   /* amber: yours */
+  --accent-2: #4cc9f0; /* cyan: target */
+  --ok: #3ddc97;
+  --err: #ff5c5c;
+  --warn: #ffb86b;
+  --star: #ffd166;
+  --accent-soft: rgba(255, 176, 0, 0.12);
+  --accent-2-soft: rgba(76, 201, 240, 0.12);
+  --ok-soft: rgba(61, 220, 151, 0.12);
+  --err-soft: rgba(255, 92, 92, 0.12);
+
+  --trk-1: #4cc9f0;
+  --trk-2: #ffb000;
+  --trk-3: #a78bfa;
+  --trk-4: #3ddc97;
+  --trk-5: #f472b6;
+  --trk-6: #60a5fa;
+  --trk-7: #facc15;
+  --trk-8: #fb923c;
+  --trk-9: #34d399;
+  --trk-10: #ff5c5c;
+
+  /* syntax */
+  --syn-cmd: #ffb000;
+  --syn-slash: #4cc9f0;
+  --syn-star: #c792ea;
+  --syn-param: #82aaff;
+  --syn-def: #c3e88d;
+  --syn-num: #f78c6c;
+  --syn-str: #c3e88d;
+  --syn-comment: #5d6880;
+  --syn-sep: #ff5c8a;
+  --syn-label: #89ddff;
+
+  --u: 8px;
+  --radius: 4px;
+  --font: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --fs-xs: 11px;
+  --fs-s: 12px;
+  --fs-m: 13px;
+  --fs-l: 16px;
+  --fs-xl: 22px;
+  --fs-xxl: 32px;
+  --header-h: 48px;
+  --ease: cubic-bezier(0.2, 0.7, 0.2, 1);
+}

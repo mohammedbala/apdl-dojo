@@ -1,0 +1,79 @@
+! =====================================================================
+!  TGF36_C.inp  -  TG tabletop foundation, Technique C
+!  Mat by VOFFST of RECTNG, columns by VEXT of RECTNG (WP offset),
+!  deck by VDRAG of a YZ cross-section along an X path line,
+!  openings by VSBV, then VGLUE.
+! =====================================================================
+/CLEAR,NOSTART
+/TITLE,TGF-36 tabletop foundation - C: extrude / drag
+/PREP7
+LENGTH = 36      $ WIDTH  = 12
+DECK_T = 3       $ DECK_EL= 14
+MAT_T  = 3       $ MAT_OH = 1
+COL_B  = 2       $ COL_D  = 3
+NCOLX  = 4       $ COL_X0 = 4       $ COL_SP = 10
+COL_Y1 = 2.5     $ COL_Y2 = 11.5
+OP_L   = 6       $ OP_W   = 5       $ OP_Y0  = 4.5
+OP_X1  = 6       $ OP_X2  = 26
+E_C    = 3.0E10  $ NU_C   = 0.2     $ RHO_C  = 2500
+ESZ    = 1.0
+M_B1 = 80E3 $ M_B2 = 150E3 $ M_B3 = 150E3 $ M_B4 = 120E3
+X0 = MAT_OH $ Y0 = MAT_OH
+MAT_L = LENGTH+2*MAT_OH $ MAT_W = WIDTH+2*MAT_OH
+DECK_Z0 = DECK_EL-DECK_T $ COL_H = DECK_Z0-MAT_T $ BY = (COL_Y1+COL_Y2)/2
+ET,1,SOLID185
+ET,2,MASS21 $ KEYOPT,2,3,2
+MP,EX,1,E_C $ MP,PRXY,1,NU_C $ MP,DENS,1,RHO_C
+R,11,M_B1 $ R,12,M_B2 $ R,13,M_B3 $ R,14,M_B4
+! ---------- columns first: RECTNG footprints on WP at z=MAT_T, VEXT up ----------
+WPOFFS,0,0,MAT_T
+*DO,I,1,NCOLX
+  XC = COL_X0+(I-1)*COL_SP
+  RECTNG,XC-COL_B/2,XC+COL_B/2,COL_Y1-COL_D/2,COL_Y1+COL_D/2
+  RECTNG,XC-COL_B/2,XC+COL_B/2,COL_Y2-COL_D/2,COL_Y2+COL_D/2
+*ENDDO
+VEXT,ALL,,,0,0,COL_H                   ! 8 column volumes (only column areas exist)
+WPOFFS,0,0,-MAT_T
+! ---------- mat: RECTNG at z=0, VOFFST along area normal (+Z) ----------
+RECTNG,0,MAT_L,0,MAT_W
+*GET,AMAT,AREA,0,NUM,MAX
+VOFFST,AMAT,MAT_T                      ! VOFFST,NAREA,DIST (negative DIST flips)
+! ---------- deck: YZ section at x=X0, dragged along X path line ----------
+K,,X0,Y0,DECK_Z0 $ K,,X0,Y0+WIDTH,DECK_Z0
+K,,X0,Y0+WIDTH,DECK_EL $ K,,X0,Y0,DECK_EL
+*GET,KT,KP,0,NUM,MAX
+A,KT-3,KT-2,KT-1,KT
+*GET,ASEC,AREA,0,NUM,MAX
+K,,X0+LENGTH,Y0,DECK_Z0
+L,KT-3,KT+1                            ! path line along +X
+*GET,LPATH,LINE,0,NUM,MAX
+VDRAG,ASEC,,,,,,LPATH                  ! VDRAG,NA1..NA6,NLP1..NLP6 (path is 7th arg)
+*GET,VDK,VOLU,0,NUM,MAX
+/PNUM,VOLU,1 $ /VIEW,1,1,1,1 $ VPLOT
+! ---------- openings ----------
+WPOFFS,0,0,DECK_Z0-1
+BLC4,OP_X1,OP_Y0,OP_L,OP_W,DECK_T+2
+BLC4,OP_X2,OP_Y0,OP_L,OP_W,DECK_T+2
+WPOFFS,0,0,-(DECK_Z0-1)
+*GET,VT2,VOLU,0,NUM,MAX
+VSBV,VDK,VT2-1 $ *GET,VDK,VOLU,0,NUM,MAX
+VSBV,VDK,VT2
+VPLOT                                  ! 10 volumes
+VGLUE,ALL
+! ---------- mesh (identical to A) ----------
+TYPE,1 $ MAT,1 $ ESIZE,ESZ
+VSEL,S,LOC,Z,MAT_T,DECK_Z0 $ CM,V_COLS,VOLU
+MSHAPE,0,3D $ MSHKEY,1 $ VMESH,ALL
+VSEL,INVE $ MSHKEY,0 $ VSWEEP,ALL
+ALLSEL
+! ---------- BCs ----------
+NSEL,S,LOC,Z,0 $ D,ALL,ALL,0 $ CM,N_MATBOT,NODE $ ALLSEL
+TYPE,2
+REAL,11 $ E,NODE(COL_X0,BY,DECK_EL)
+REAL,12 $ E,NODE(COL_X0+COL_SP,BY,DECK_EL)
+REAL,13 $ E,NODE(COL_X0+2*COL_SP,BY,DECK_EL)
+REAL,14 $ E,NODE(COL_X0+3*COL_SP,BY,DECK_EL)
+ESEL,S,TYPE,,2 $ CM,E_BRGMASS,ELEM $ ALLSEL
+ACEL,0,0,9.81
+/PNUM,VOLU,0 $ EPLOT
+FINISH

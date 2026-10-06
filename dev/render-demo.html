@@ -1,0 +1,43 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Render Demo</title>
+    <style>
+      :root { color-scheme: dark; }
+      html, body { margin: 0; height: 100%; background: #0b0e14; color: #cbd5e1; font: 12px/1.4 ui-monospace, Menlo, monospace; }
+      body { display: flex; flex-direction: column; }
+      header { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; padding: 6px 12px; border-bottom: 1px solid #1e2533; }
+      header label { display: inline-flex; gap: 4px; align-items: center; }
+      header button, header select { font: inherit; background: #151a24; color: #cbd5e1; border: 1px solid #2a3344; border-radius: 4px; padding: 2px 8px; }
+      #vp { flex: 1; min-height: 0; }
+      #stats { margin-left: auto; color: #64748b; }
+    </style>
+  </head>
+  <body>
+    <header>
+      <strong>APDL Dojo render demo</strong>
+      <label>colour by
+        <select id="colorBy">
+          <option value="entity">entity</option><option value="type">type</option><option value="mat">mat</option>
+          <option value="real">real</option><option value="sec">sec</option>
+        </select>
+      </label>
+      <label>plot
+        <select id="plot">
+          <option value="">auto</option><option value="kp">KPLOT</option><option value="line">LPLOT</option>
+          <option value="area">APLOT</option><option value="volu">VPLOT</option><option value="node">NPLOT</option>
+          <option value="elem">EPLOT</option><option value="all">GPLOT</option>
+        </select>
+      </label>
+      <label><input type="checkbox" id="bc" checked /> BCs</label>
+      <label><input type="checkbox" id="partial" /> partial selection</label>
+      <button id="view">/VIEW,1,1,-1,0.5</button>
+      <button id="target">toggle target</button>
+      <span id="stats"></span>
+    </header>
+    <div id="vp"></div>
+    <script type="module" src="./render-demo.ts"></script>
+  </body>
+</html>

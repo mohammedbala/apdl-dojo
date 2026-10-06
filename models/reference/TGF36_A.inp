@@ -1,0 +1,76 @@
+! =====================================================================
+!  TGF36_A.inp  -  TG tabletop foundation, Technique A
+!  Solid primitives (BLOCK / BLC4) + Booleans (VSBV / VGLUE)
+!  Units SI (m,kg,s,N). Z vertical. Mat bottom at z=0, fixed.
+! =====================================================================
+/CLEAR,NOSTART
+/TITLE,TGF-36 tabletop foundation - A: primitives + Booleans
+/PREP7
+LENGTH = 36      $ WIDTH  = 12      ! deck plan
+DECK_T = 3       $ DECK_EL= 14      ! deck thickness, top elevation
+MAT_T  = 3       $ MAT_OH = 1       ! mat thickness, overhang each side
+COL_B  = 2       $ COL_D  = 3       ! column size X, Y
+NCOLX  = 4       $ COL_X0 = 4       $ COL_SP = 10
+COL_Y1 = 2.5     $ COL_Y2 = 11.5
+OP_L   = 6       $ OP_W   = 5       $ OP_Y0  = 4.5
+OP_X1  = 6       $ OP_X2  = 26
+E_C    = 3.0E10  $ NU_C   = 0.2     $ RHO_C  = 2500
+ESZ    = 1.0
+M_B1 = 80E3 $ M_B2 = 150E3 $ M_B3 = 150E3 $ M_B4 = 120E3
+X0 = MAT_OH $ Y0 = MAT_OH
+MAT_L = LENGTH+2*MAT_OH $ MAT_W = WIDTH+2*MAT_OH
+DECK_Z0 = DECK_EL-DECK_T $ COL_H = DECK_Z0-MAT_T $ BY = (COL_Y1+COL_Y2)/2
+! ---------- element types / material / reals ----------
+ET,1,SOLID185
+ET,2,MASS21
+KEYOPT,2,3,2                       ! 3-D mass, no rotary inertia (one real)
+MP,EX,1,E_C $ MP,PRXY,1,NU_C $ MP,DENS,1,RHO_C
+R,11,M_B1 $ R,12,M_B2 $ R,13,M_B3 $ R,14,M_B4
+! ---------- base mat: BLOCK is X1,X2,Y1,Y2,Z1,Z2 (working-plane coords) ----------
+BLOCK,0,MAT_L,0,MAT_W,0,MAT_T
+! ---------- columns: BLC4 is XCORNER,YCORNER,WIDTH,HEIGHT,DEPTH from WP ----------
+WPOFFS,0,0,MAT_T                   ! move working plane to top of mat
+*DO,I,1,NCOLX
+  XC = COL_X0+(I-1)*COL_SP
+  BLC4,XC-COL_B/2,COL_Y1-COL_D/2,COL_B,COL_D,COL_H
+  BLC4,XC-COL_B/2,COL_Y2-COL_D/2,COL_B,COL_D,COL_H
+*ENDDO
+WPOFFS,0,0,-MAT_T                  ! WP back to global origin
+! ---------- deck + openings ----------
+BLOCK,X0,X0+LENGTH,Y0,Y0+WIDTH,DECK_Z0,DECK_EL
+*GET,VDK,VOLU,0,NUM,MAX            ! deck volume number (=10)
+BLOCK,OP_X1,OP_X1+OP_L,OP_Y0,OP_Y0+OP_W,DECK_Z0-1,DECK_EL+1   ! tool, overshoots
+BLOCK,OP_X2,OP_X2+OP_L,OP_Y0,OP_Y0+OP_W,DECK_Z0-1,DECK_EL+1
+*GET,VT2,VOLU,0,NUM,MAX            ! second tool (=12)
+VSBV,VDK,VT2-1                     ! VSBV,NV1,NV2,SEPO,KEEP1,KEEP2  -> new deck
+*GET,VDK,VOLU,0,NUM,MAX
+VSBV,VDK,VT2
+/PNUM,VOLU,1 $ /VIEW,1,1,1,1 $ VPLOT   ! 10 volumes, not yet connected
+! ---------- glue (renumbers all touching volumes) ----------
+VGLUE,ALL                          ! still 10 volumes, shared faces
+VPLOT
+! ---------- mesh ----------
+TYPE,1 $ MAT,1
+ESIZE,ESZ
+VSEL,S,LOC,Z,MAT_T,DECK_Z0         ! column volumes (centroid z=7)
+CM,V_COLS,VOLU
+MSHAPE,0,3D $ MSHKEY,1             ! mapped hex
+VMESH,ALL
+VSEL,INVE                          ! mat + deck
+MSHKEY,0
+VSWEEP,ALL                         ! swept hex
+ALLSEL
+! ---------- supports, masses, gravity ----------
+NSEL,S,LOC,Z,0
+D,ALL,ALL,0
+CM,N_MATBOT,NODE
+ALLSEL
+TYPE,2
+REAL,11 $ E,NODE(COL_X0,BY,DECK_EL)
+REAL,12 $ E,NODE(COL_X0+COL_SP,BY,DECK_EL)
+REAL,13 $ E,NODE(COL_X0+2*COL_SP,BY,DECK_EL)
+REAL,14 $ E,NODE(COL_X0+3*COL_SP,BY,DECK_EL)
+ESEL,S,TYPE,,2 $ CM,E_BRGMASS,ELEM $ ALLSEL
+ACEL,0,0,9.81
+/PNUM,VOLU,0 $ EPLOT
+FINISH

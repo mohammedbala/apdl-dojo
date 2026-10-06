@@ -1,0 +1,81 @@
+! =====================================================================
+!  TGF36_B.inp  -  TG tabletop foundation, Technique B
+!  Bottom-up: keypoints -> areas -> VEXT; KGEN/AGEN replicate columns
+!  Rule: create ALL footprint areas first, extrude last (avoids
+!  VEXT-generated keypoints colliding with explicit K numbers).
+! =====================================================================
+/CLEAR,NOSTART
+/TITLE,TGF-36 tabletop foundation - B: bottom-up
+/PREP7
+LENGTH = 36      $ WIDTH  = 12
+DECK_T = 3       $ DECK_EL= 14
+MAT_T  = 3       $ MAT_OH = 1
+COL_B  = 2       $ COL_D  = 3
+NCOLX  = 4       $ COL_X0 = 4       $ COL_SP = 10
+COL_Y1 = 2.5     $ COL_Y2 = 11.5
+OP_L   = 6       $ OP_W   = 5       $ OP_Y0  = 4.5
+OP_X1  = 6       $ OP_X2  = 26
+E_C    = 3.0E10  $ NU_C   = 0.2     $ RHO_C  = 2500
+ESZ    = 1.0
+M_B1 = 80E3 $ M_B2 = 150E3 $ M_B3 = 150E3 $ M_B4 = 120E3
+X0 = MAT_OH $ Y0 = MAT_OH
+MAT_L = LENGTH+2*MAT_OH $ MAT_W = WIDTH+2*MAT_OH
+DECK_Z0 = DECK_EL-DECK_T $ COL_H = DECK_Z0-MAT_T $ BY = (COL_Y1+COL_Y2)/2
+ET,1,SOLID185
+ET,2,MASS21 $ KEYOPT,2,3,2
+MP,EX,1,E_C $ MP,PRXY,1,NU_C $ MP,DENS,1,RHO_C
+R,11,M_B1 $ R,12,M_B2 $ R,13,M_B3 $ R,14,M_B4
+! ---------- mat footprint at z=0 ----------
+K,1,0,0,0 $ K,2,MAT_L,0,0 $ K,3,MAT_L,MAT_W,0 $ K,4,0,MAT_W,0
+A,1,2,3,4                              ! area 1
+! ---------- first column footprint (row 1) at z=MAT_T, replicate ----------
+XA = COL_X0-COL_B/2 $ YA = COL_Y1-COL_D/2
+K,11,XA,YA,MAT_T $ K,12,XA+COL_B,YA,MAT_T
+K,13,XA+COL_B,YA+COL_D,MAT_T $ K,14,XA,YA+COL_D,MAT_T
+KGEN,2,11,14,1,0,COL_Y2-COL_Y1,0,4     ! row-2 keypoints 15..18 (KINC=4)
+A,11,12,13,14 $ A,15,16,17,18          ! areas 2,3
+*GET,ACOL,AREA,0,NUM,MAX
+AGEN,NCOLX,ACOL-1,ACOL,1,COL_SP        ! AGEN,ITIME,NA1,NA2,NINC,DX -> 8 footprints
+/PNUM,KP,1 $ /PNUM,AREA,1 $ /VIEW,1,1,1,1 $ APLOT
+! ---------- deck outline + openings at z=DECK_Z0 ----------
+K,,X0,Y0,DECK_Z0 $ K,,X0+LENGTH,Y0,DECK_Z0
+K,,X0+LENGTH,Y0+WIDTH,DECK_Z0 $ K,,X0,Y0+WIDTH,DECK_Z0
+*GET,KT,KP,0,NUM,MAX
+A,KT-3,KT-2,KT-1,KT
+*GET,ADK,AREA,0,NUM,MAX
+*DO,I,1,2
+  XO = OP_X1+(I-1)*(OP_X2-OP_X1)
+  K,,XO,OP_Y0,DECK_Z0 $ K,,XO+OP_L,OP_Y0,DECK_Z0
+  K,,XO+OP_L,OP_Y0+OP_W,DECK_Z0 $ K,,XO,OP_Y0+OP_W,DECK_Z0
+  *GET,KT,KP,0,NUM,MAX
+  A,KT-3,KT-2,KT-1,KT
+*ENDDO
+ASEL,S,LOC,Z,DECK_Z0
+ASEL,U,AREA,,ADK
+CM,A_OPEN,AREA
+ALLSEL
+ASBA,ADK,A_OPEN                        ! deck footprint with two holes
+! ---------- extrude: deck first, columns, then mat (selection by Z) ----------
+ASEL,S,LOC,Z,DECK_Z0 $ VEXT,ALL,,,0,0,DECK_T     ! VEXT,NA1,NA2,NINC,DX,DY,DZ
+ASEL,S,LOC,Z,MAT_T   $ VEXT,ALL,,,0,0,COL_H
+ASEL,S,LOC,Z,0       $ VEXT,ALL,,,0,0,MAT_T
+ALLSEL
+/PNUM,KP,0 $ /PNUM,AREA,0 $ /PNUM,VOLU,1 $ VPLOT     ! 10 volumes
+VGLUE,ALL
+! ---------- mesh (identical to A) ----------
+TYPE,1 $ MAT,1 $ ESIZE,ESZ
+VSEL,S,LOC,Z,MAT_T,DECK_Z0 $ CM,V_COLS,VOLU
+MSHAPE,0,3D $ MSHKEY,1 $ VMESH,ALL
+VSEL,INVE $ MSHKEY,0 $ VSWEEP,ALL
+ALLSEL
+! ---------- BCs ----------
+NSEL,S,LOC,Z,0 $ D,ALL,ALL,0 $ CM,N_MATBOT,NODE $ ALLSEL
+TYPE,2
+REAL,11 $ E,NODE(COL_X0,BY,DECK_EL)
+REAL,12 $ E,NODE(COL_X0+COL_SP,BY,DECK_EL)
+REAL,13 $ E,NODE(COL_X0+2*COL_SP,BY,DECK_EL)
+REAL,14 $ E,NODE(COL_X0+3*COL_SP,BY,DECK_EL)
+ESEL,S,TYPE,,2 $ CM,E_BRGMASS,ELEM $ ALLSEL
+ACEL,0,0,9.81
+/PNUM,VOLU,0 $ EPLOT
+FINISH

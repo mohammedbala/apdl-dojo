@@ -1,0 +1,109 @@
+! =====================================================================
+!  TGF36_D.inp  -  TG tabletop foundation, Technique D
+!  Idealised frame: SHELL181 mat (direct generation N/NGEN/E/EGEN),
+!  COMBIN14 Winkler soil springs, BEAM188 columns + deck grillage,
+!  MASS21 at bearings.  Mat & deck modelled at their mid-planes.
+! =====================================================================
+/CLEAR,NOSTART
+/TITLE,TGF-36 tabletop foundation - D: beam/shell/spring frame
+/PREP7
+LENGTH = 36      $ WIDTH  = 12
+DECK_T = 3       $ DECK_EL= 14
+MAT_T  = 3       $ MAT_OH = 1
+COL_B  = 2       $ COL_D  = 3
+NCOLX  = 4       $ COL_X0 = 4       $ COL_SP = 10
+COL_Y1 = 2.5     $ COL_Y2 = 11.5
+LB_W   = 3.5     $ TB_W   = 4       ! longitudinal / transverse beam widths
+E_C    = 3.0E10  $ NU_C   = 0.2     $ RHO_C  = 2500
+KSV    = 5E7     $ KSH    = 2.5E7   ! soil subgrade moduli, N/m3
+DX     = 1.0     $ DY     = 0.5     ! mat node grid
+ESZ    = 1.0
+M_B1 = 80E3 $ M_B2 = 150E3 $ M_B3 = 150E3 $ M_B4 = 120E3
+X0 = MAT_OH $ Y0 = MAT_OH
+MAT_L = LENGTH+2*MAT_OH $ MAT_W = WIDTH+2*MAT_OH
+ZMAT = MAT_T/2 $ ZDK = DECK_EL-DECK_T/2 $ BY = (COL_Y1+COL_Y2)/2
+NX = NINT(MAT_L/DX)+1 $ NY = NINT(MAT_W/DY)+1        ! 39, 29
+KV = KSV*DX*DY $ KH = KSH*DX*DY                        ! 2.5e7, 1.25e7 N/m
+! ---------- element types ----------
+ET,1,SHELL181                      ! mat
+ET,2,BEAM188                       ! columns + grillage
+ET,3,MASS21 $ KEYOPT,3,3,2
+ET,4,COMBIN14 $ KEYOPT,4,2,3       ! 1-D spring, UZ
+ET,5,COMBIN14 $ KEYOPT,5,2,1       ! UX
+ET,6,COMBIN14 $ KEYOPT,6,2,2       ! UY
+MP,EX,1,E_C $ MP,PRXY,1,NU_C $ MP,DENS,1,RHO_C
+SECTYPE,1,SHELL $ SECDATA,MAT_T,1
+SECTYPE,2,BEAM,RECT $ SECDATA,COL_D,COL_B   ! vertical beam: B along global Y
+SECTYPE,3,BEAM,RECT $ SECDATA,LB_W,DECK_T   ! longitudinal: B = width, H = depth
+SECTYPE,4,BEAM,RECT $ SECDATA,TB_W,DECK_T
+R,4,KV $ R,5,KH $ R,6,KH
+R,11,M_B1 $ R,12,M_B2 $ R,13,M_B3 $ R,14,M_B4
+! ---------- mat shell by direct generation ----------
+TYPE,1 $ MAT,1 $ SECNUM,1
+N,1,0,0,ZMAT
+NGEN,NX,1,1,1,1,DX                 ! NGEN,ITIME,INC,N1,N2,NINC,DX,DY,DZ
+NGEN,NY,100,1,NX,1,0,DY            ! rows 1.., 101.., ... 2801..
+E,1,2,102,101
+EGEN,NX-1,1,1                      ! EGEN,ITIME,NINC,IEL1
+EGEN,NY-1,100,1,NX-1
+CM,E_MAT,ELEM
+! ---------- soil springs: ground nodes 1 m below, then E + EGEN ----------
+NLAST = 100*(NY-1)+NX
+NGEN,2,10000,1,NLAST,1,0,0,-1      ! ground nodes 10001..
+TYPE,4 $ REAL,4 $ E,1,10001
+*GET,E1,ELEM,0,NUM,MAX
+EGEN,NX,1,E1 $ EGEN,NY,100,E1,E1+NX-1
+TYPE,5 $ REAL,5 $ E,1,10001
+*GET,E1,ELEM,0,NUM,MAX
+EGEN,NX,1,E1 $ EGEN,NY,100,E1,E1+NX-1
+TYPE,6 $ REAL,6 $ E,1,10001
+*GET,E1,ELEM,0,NUM,MAX
+EGEN,NX,1,E1 $ EGEN,NY,100,E1,E1+NX-1
+NSEL,S,LOC,Z,ZMAT-1 $ D,ALL,ALL,0 $ CM,N_GROUND,NODE $ ALLSEL
+! ---------- columns: keypoint lines ZMAT -> ZDK ----------
+*DO,I,1,NCOLX
+  XC = COL_X0+(I-1)*COL_SP
+  *DO,J,1,2
+    YC = COL_Y1+(J-1)*(COL_Y2-COL_Y1)
+    K,,XC,YC,ZMAT $ K,,XC,YC,ZDK
+    *GET,KT,KP,0,NUM,MAX
+    L,KT-1,KT
+  *ENDDO
+*ENDDO
+LSEL,S,LOC,Z,ZMAT+0.1,ZDK-0.1      ! column lines (centroid z=7)
+LATT,1,,2,,,,2                     ! LATT,MAT,REAL,TYPE,ESYS,KB,KE,SECNUM
+LESIZE,ALL,ESZ
+LMESH,ALL
+CM,E_COLS,ELEM
+! ---------- deck grillage at ZDK ----------
+*DO,J,1,2
+  YC = COL_Y1+(J-1)*(COL_Y2-COL_Y1)
+  K,,X0,YC,ZDK $ K,,X0+LENGTH,YC,ZDK
+  L,KP(X0,YC,ZDK),KP(COL_X0,YC,ZDK)
+  *DO,I,1,NCOLX-1
+    L,KP(COL_X0+(I-1)*COL_SP,YC,ZDK),KP(COL_X0+I*COL_SP,YC,ZDK)
+  *ENDDO
+  L,KP(COL_X0+(NCOLX-1)*COL_SP,YC,ZDK),KP(X0+LENGTH,YC,ZDK)
+*ENDDO
+LSEL,S,LOC,Y,COL_Y1 $ LSEL,A,LOC,Y,COL_Y2 $ LSEL,R,LOC,Z,ZDK
+LATT,1,,2,,,,3 $ LESIZE,ALL,ESZ $ LMESH,ALL
+*DO,I,1,NCOLX
+  XC = COL_X0+(I-1)*COL_SP
+  K,,XC,BY,ZDK                     ! bearing keypoint
+  L,KP(XC,COL_Y1,ZDK),KP(XC,BY,ZDK)
+  L,KP(XC,BY,ZDK),KP(XC,COL_Y2,ZDK)
+*ENDDO
+LSEL,S,LOC,Z,ZDK $ LSEL,U,LOC,Y,COL_Y1 $ LSEL,U,LOC,Y,COL_Y2
+LATT,1,,2,,,,4 $ LESIZE,ALL,ESZ $ LMESH,ALL
+ALLSEL
+NUMMRG,NODE,1E-3                   ! column base nodes onto mat grid nodes
+! ---------- bearing masses, gravity ----------
+TYPE,3
+REAL,11 $ E,NODE(COL_X0,BY,ZDK)
+REAL,12 $ E,NODE(COL_X0+COL_SP,BY,ZDK)
+REAL,13 $ E,NODE(COL_X0+2*COL_SP,BY,ZDK)
+REAL,14 $ E,NODE(COL_X0+3*COL_SP,BY,ZDK)
+ESEL,S,TYPE,,3 $ CM,E_BRGMASS,ELEM $ ALLSEL
+ACEL,0,0,9.81
+/ESHAPE,1 $ /VIEW,1,1,1,1 $ EPLOT
+FINISH

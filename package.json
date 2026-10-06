@@ -1,0 +1,40 @@
+{
+  "name": "apdl-dojo",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Gamified ANSYS APDL speed trainer with an in-browser APDL interpreter and 3D model viewer.",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "license": "MIT",
+  "dependencies": {
+    "@codemirror/autocomplete": "^6.20.3",
+    "@codemirror/commands": "^6.11.1",
+    "@codemirror/language": "^6.12.4",
+    "@codemirror/state": "^6.7.6",
+    "@codemirror/view": "^6.43.13",
+    "@fontsource/jetbrains-mono": "^5.3.0",
+    "@lezer/highlight": "^1.2.5",
+    "canvas-confetti": "^1.9.4",
+    "codemirror": "^6.0.2",
+    "earcut": "^3.2.4",
+    "manifold-3d": "^3.5.4",
+    "poly2tri": "^1.5.0",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@types/canvas-confetti": "^1.9.0",
+    "@types/earcut": "^3.0.0",
+    "@types/node": "^22.0.0",
+    "@types/three": "^0.186.0",
+    "typescript": "~5.9.3",
+    "vite": "^7.3.6",
+    "vitest": "^4.1.11"
+  }
+}
