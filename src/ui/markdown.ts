@@ -40,6 +40,19 @@ export function renderMarkdown(md: string): string {
       html.push(`<pre><code>${esc(body.join('\n'))}</code></pre>`);
       continue;
     }
+    // GFM table: header row, separator row, body rows
+    if (/^\s*\|.*\|\s*$/.test(line) && i + 1 < lines.length && /^\s*\|?\s*:?-{2,}/.test(lines[i + 1])) {
+      flushPara();
+      flushList();
+      const cells = (l: string) => l.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map((c) => c.trim());
+      const head = cells(line);
+      i += 2;
+      const rows: string[][] = [];
+      while (i < lines.length && /^\s*\|.*\|\s*$/.test(lines[i])) rows.push(cells(lines[i++]));
+      i--;
+      html.push(`<table class="md-table"><thead><tr>${head.map((c) => `<th>${inline(c)}</th>`).join('')}</tr></thead><tbody>${rows.map((r) => `<tr>${r.map((c) => `<td>${inline(c)}</td>`).join('')}</tr>`).join('')}</tbody></table>`);
+      continue;
+    }
     const hm = /^(#{1,4})\s+(.*)$/.exec(line);
     if (hm) {
       flushPara();

@@ -244,3 +244,7 @@ table.tbl td.r, table.tbl th.r { text-align: right; }
 .list-row:hover { border-color: var(--line-2); text-decoration: none; }
 .list-row + .list-row { margin-top: 6px; }
 .sheet { display: grid; grid-template-columns: auto 1fr; gap: 6px 16px; font-size: var(--fs-s); }
+/* markdown tables (briefs, lessons) */
+.md-table { border-collapse: collapse; margin: 6px 0; font-size: var(--fs-s); }
+.md-table th, .md-table td { border: 1px solid var(--line); padding: 3px 8px; text-align: left; vertical-align: top; }
+.md-table th { color: var(--fg-dim); font-weight: 600; background: var(--bg-1); }

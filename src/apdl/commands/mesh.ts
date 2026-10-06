@@ -214,7 +214,7 @@ function listOrSelected(c: Ctx, a: Args, kind: 'volu' | 'area' | 'line' | 'kp'):
 
 function afterMesh(c: Ctx, what: string, r: { count: number; notes: string[]; elems: number }) {
   for (const n of r.notes) c.note(n);
-  if (r.count && !c.m.cur.esize && !c.m.cur.esizeNdiv && ![...c.m.lines.values()].some((l) => l.mesh)) {
+  if (r.count && !c.m.cur.esize && !c.m.cur.esizeNdiv && ![...c.m.lines.values()].some((l) => l.mesh) && ![...c.m.areas.values()].some((x) => x.esize) && ![...c.m.volus.values()].some((x) => x.esize)) {
     c.note('No ESIZE or LESIZE was set: a default element size (1/20 of the model size) was used.  Set ESIZE before meshing to control the element count.', 'MESH_DEFAULT_SIZE');
   }
   c.out(meshSummary(c.m, what, r.count));

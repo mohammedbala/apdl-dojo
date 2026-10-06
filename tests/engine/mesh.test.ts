@@ -127,3 +127,15 @@ describe('single-entity fields', () => {
     expect(r.s.bc.fSum[2]).toBe(-1000);
   });
 });
+
+describe('model checks', () => {
+  it('SOLVE flags a section without SECDATA', () => {
+    const r = run('/PREP7\nET,1,BEAM188\nMP,EX,1,2E11\nSECTYPE,1,BEAM,RECT\nK,1 $ K,2,4 $ L,1,2\nESIZE,1\nLMESH,ALL\nDK,1,ALL\nFINISH\n/SOLU\nSOLVE');
+    expect(r.errors.some((e) => e.text.includes('no dimensions'))).toBe(true);
+  });
+  it('AESIZE alone does not trigger the default-size note', () => {
+    const r = run('/PREP7\nRECTNG,0,36,0,12\nET,1,SHELL181\nAESIZE,ALL,1\nAMESH,ALL');
+    expect(r.s.counts.elem).toBe(432);
+    expect(r.diagnostics.some((d) => d.code === 'MESH_DEFAULT_SIZE')).toBe(false);
+  });
+});

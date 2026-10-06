@@ -170,7 +170,11 @@ reg('SOLVE', (c) => {
       if (!mt || mt.props.EX === undefined) problems.push(`Material number ${e.mat} (used by element ${e.id}, ${et.ename}) has no EX defined.`);
       if (m.acel && mt && mt.props.DENS === undefined) c.warn('NO_DENS', `Material ${e.mat} has no DENS: ACEL (gravity) will produce no load on ${et.ename} elements.`);
     }
-    if (def.needs.includes('sec') && !m.secs.has(e.secnum)) problems.push(`Section ${e.secnum} (used by element ${e.id}, ${et.ename}) is not defined.  Use SECTYPE/SECDATA.`);
+    if (def.needs.includes('sec')) {
+      const sec = m.secs.get(e.secnum);
+      if (!sec) problems.push(`Section ${e.secnum} (used by element ${e.id}, ${et.ename}) is not defined.  Use SECTYPE/SECDATA.`);
+      else if (!sec.data.length || sec.data[0] <= 0) problems.push(`Section ${e.secnum} (used by element ${e.id}, ${et.ename}) has no dimensions.  Add SECDATA after SECTYPE.`);
+    }
     if (def.needs.includes('real') && !m.reals.has(e.real)) problems.push(`Real constant set ${e.real} (used by element ${e.id}, ${et.ename}) is not defined.`);
   }
   if (!m.bcs.some((b) => b.kind === 'D')) problems.push('No displacement constraints are defined: the model would have rigid-body motion.');
