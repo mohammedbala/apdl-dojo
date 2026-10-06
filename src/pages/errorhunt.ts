@@ -10,7 +10,7 @@ import { h, fmtTime } from '../ui/dom';
 import { countScriptLines } from '../engine';
 
 export function errorHuntListPage({ root }: RouteCtx) {
-  root.appendChild(pageHead('Error hunt', 'Each script has 3 planted bugs that produce real-looking ANSYS messages. Win = zero warnings/errors and a grader match.'));
+  root.appendChild(pageHead('Error hunt', 'Each script has planted bugs that produce real-looking ANSYS messages. Win = zero warnings/errors and a grader match.'));
   if (!errorHunts.length) {
     comingSoon(root, '', 'Error hunts are being written.', { href: '#/tracks', label: 'Go to tracks' });
     return;
@@ -19,7 +19,7 @@ export function errorHuntListPage({ root }: RouteCtx) {
   for (const e of errorHunts) {
     const r = s.errorHunt[e.id];
     root.appendChild(h('a', { class: 'list-row', href: `#/errorhunt/${e.id}` },
-      h('span', null, h('b', null, e.title), h('span', { class: 'faint' }, `  · ${e.bugs.length} bugs`)),
+      h('span', null, h('b', null, e.title), h('span', { class: 'faint' }, `  · ${e.bugs.length} bug${e.bugs.length === 1 ? '' : 's'}`)),
       h('span', { class: 'faint small' }, `difficulty ${e.difficulty}`),
       h('span', { class: 'small' }, `par ${e.parTimeSeconds}s`),
       h('span', { class: r?.clears ? 'ok small' : 'faint small' }, r?.clears ? `best ${fmtTime(r.bestTimeMs)}` : 'not cleared'),
