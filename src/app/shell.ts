@@ -8,7 +8,7 @@ import { toggleReferenceDrawer } from '../ui/reference';
 import type { Router } from './router';
 
 export const NAV: [string, string][] = [
-  ['Home', '#/'], ['Drills', '#/drills'], ['Flashcards', '#/flashcards'], ['Tracks', '#/tracks'], ['Daily', '#/daily'],
+  ['Home', '#/'], ['Train', '#/train'], ['Drills', '#/drills'], ['Flashcards', '#/flashcards'], ['Tracks', '#/tracks'], ['Daily', '#/daily'],
   ['Speedrun', '#/speedrun'], ['Sandbox', '#/sandbox'], ['Stats', '#/stats'], ['Achievements', '#/achievements'], ['Reference', '#/reference'], ['Settings', '#/settings'],
 ];
 

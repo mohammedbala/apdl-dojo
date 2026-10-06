@@ -1,3 +1,4 @@
+import { curriculum, resumeTarget } from './trainer';
 // #/ — streak strip, daily card, due cards, continue, speedrun PB, level bar, mini radar.
 import type { RouteCtx } from '../app/router';
 import { getChallenge, challenges, SPEEDRUN_TARGET_ID, tracks } from '../content';
@@ -48,11 +49,14 @@ export function homePage({ root }: RouteCtx) {
       h('div', { class: 'btn primary', style: 'margin-top:12px' }, dailyRec?.stars ? 'View' : 'Play daily')),
   ));
 
+  const trainList = curriculum();
+  const trainNext = resumeTarget(trainList);
+  const trainDone = trainList.filter((x) => (s.challenges[x.id]?.bestStars ?? 0) > 0).length;
   root.appendChild(h('div', { class: 'grid c4', style: 'margin-bottom:16px' },
-    h('a', { class: 'card link', href: cont ? `#/challenge/${cont[0]}` : firstOpen ? `#/challenge/${firstOpen.id}` : '#/tracks' },
-      h('div', { class: 'kicker' }, 'Continue'),
-      h('h2', null, cont ? getChallenge(cont[0])!.title : firstOpen ? firstOpen.title : 'Browse tracks'),
-      cont ? starsEl(cont[1].bestStars) : h('div', { class: 'faint small' }, 'Start with the first challenge')),
+    h('a', { class: 'card link', href: '#/train' },
+      h('div', { class: 'kicker' }, 'Continue training'),
+      h('h2', null, trainNext?.title ?? (cont ? getChallenge(cont[0])!.title : firstOpen ? firstOpen.title : 'Browse tracks')),
+      h('div', { class: 'faint small' }, `${trainDone}/${trainList.length} challenges cleared · one continuous run`)),
     h('a', { class: 'card link', href: '#/flashcards' },
       h('div', { class: 'kicker' }, 'Flashcards'), h('div', { class: 'big-num' }, String(due.length)), h('div', { class: 'faint small' }, 'due or new today')),
     h('a', { class: 'card link', href: '#/drills' },

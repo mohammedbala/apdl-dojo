@@ -13,6 +13,7 @@ interface Item {
 function items(): Item[] {
   const out: Item[] = [
     { label: 'Home', hint: 'page', href: '#/' },
+    { label: 'Trainer (all challenges in order)', hint: 'page', href: '#/train' },
     { label: 'Drills', hint: 'page', href: '#/drills' },
     { label: 'Flashcards', hint: 'page', href: '#/flashcards' },
     { label: 'Tracks', hint: 'page', href: '#/tracks' },

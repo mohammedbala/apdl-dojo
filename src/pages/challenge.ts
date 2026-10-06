@@ -5,7 +5,8 @@ import { defaultParams, fillBrief, withParams } from '../game/params';
 import { recordAttempt, recordClear, isTrackUnlocked, unlockReason } from '../game/progress';
 import { isoDate } from '../game/streak';
 import { getSave, getSettings, updateSave } from '../app/persist';
-import { mountAttempt } from './attempt';
+import { mountAttempt, type AttemptConfig } from './attempt';
+import type { Challenge } from '../content/types';
 import { comingSoon, padded } from './common';
 import { h } from '../ui/dom';
 import type { ClearResult } from '../game/progress';
@@ -22,15 +23,24 @@ export function challengePage({ params, root }: RouteCtx) {
     comingSoon(p, c.title, `${track.title} is locked. ${unlockReason(track)} (Settings → unlock all overrides this.)`, { href: `#/tracks/${track.id}`, label: 'Back to track' });
     return;
   }
-  const prm = defaultParams(c.params);
-  const rules = effectiveRules(c);
   const next = nextChallenge(c.id);
   const lesson = lessonForChallenge(c.id);
+  return mountAttempt(root, challengeAttemptConfig(c, {
+    backHref: lesson ? `#/lesson/${lesson.id}` : `#/tracks/${c.track}`,
+    nextHref: next ? `#/challenge/${next.id}` : `#/tracks/${c.track}`,
+    nextLabel: next ? `Next: ${next.title}` : 'Back to track',
+  }));
+}
+
+/** Attempt-screen configuration for a challenge (shared by the challenge page and the trainer). */
+export function challengeAttemptConfig(c: Challenge, nav: { backHref?: string; nextHref?: string; nextLabel?: string; title?: string }): AttemptConfig {
+  const prm = defaultParams(c.params);
+  const rules = effectiveRules(c);
   const rec = getSave().challenges[c.id];
-  return mountAttempt(root, {
+  return {
     key: c.id,
     mode: 'challenge',
-    title: `${c.track.toUpperCase()} · ${c.title}`,
+    title: nav.title ?? `${c.track.toUpperCase()} · ${c.title}`,
     brief: fillBrief(c.brief, prm),
     targetScript: withParams(c.targetScript, prm),
     parLines: c.parLines,
@@ -44,9 +54,9 @@ export function challengePage({ params, root }: RouteCtx) {
     pasteBlocked: true,
     drafts: true,
     ghost: rec?.ghost ?? null,
-    backHref: lesson ? `#/lesson/${lesson.id}` : `#/tracks/${c.track}`,
-    nextHref: next ? `#/challenge/${next.id}` : `#/tracks/${c.track}`,
-    nextLabel: next ? `Next: ${next.title}` : 'Back to track',
+    backHref: nav.backHref,
+    nextHref: nav.nextHref,
+    nextLabel: nav.nextLabel,
     onStart: () => updateSave((s) => recordAttempt(s, c.id)),
     onClear: (x) => {
       let r!: ClearResult;
@@ -63,5 +73,5 @@ export function challengePage({ params, root }: RouteCtx) {
         extra: r.prevBestMs !== null ? h('p', { class: 'faint small', style: 'margin-top:12px' }, `Previous best ${(r.prevBestMs / 1000).toFixed(1)} s`) : undefined,
       };
     },
-  });
+  };
 }

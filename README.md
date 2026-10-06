@@ -13,6 +13,7 @@ No install, no licence, no backend: progress is stored in your browser and can b
 
 | Mode | What it trains |
 |---|---|
+| **Train** | One continuous run through every challenge of every track, in order, with the 3-D view. A curriculum sidebar shows your progress, lesson briefings pop up as you reach each lesson, and clearing a challenge takes you straight to the next. It resumes where you left off. |
 | **Tracks** | Ten technique tracks with short lessons and graded build challenges. Forbidden-command rules force the technique (no `BLOCK` in the bottom-up track, no `K/L/A/V` in the primitives track). |
 | **Drills** | Monkeytype-style command typing: a prompt like "Create keypoint 5 at (2, 0, 3)", you type `K,5,2,,3`. Tracks commands per minute, accuracy and your weakest commands. |
 | **Flashcards** | Command ⇄ meaning recall with Leitner spaced repetition. |
