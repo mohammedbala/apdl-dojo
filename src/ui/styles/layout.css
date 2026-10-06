@@ -84,7 +84,7 @@ table.tbl td.r, table.tbl th.r { text-align: right; }
 /* ---------------------------------------------------------------- toast / modal */
 .toasts { position: fixed; right: calc(var(--u) * 2); bottom: calc(var(--u) * 2); display: flex; flex-direction: column; gap: var(--u); z-index: 100; align-items: flex-end; pointer-events: none; }
 .toast { pointer-events: auto; background: var(--bg-2); border: 1px solid var(--line-2); border-left: 3px solid var(--accent-2); border-radius: var(--radius); padding: 8px 12px; width: 340px; font-size: var(--fs-s); display: flex; gap: var(--u); align-items: center; animation: toast-in 220ms var(--ease); }
-.toast.ach { border-left-color: var(--star); }
+.toast.ach { border-left-color: var(--star); display: flex; grid-template-columns: none; padding: 8px 12px; background: var(--bg-2); border-color: var(--line-2); border-left: 3px solid var(--star); }
 .toast.err { border-left-color: var(--err); }
 .toast.ok { border-left-color: var(--ok); }
 .toast .t-title { font-weight: 600; }

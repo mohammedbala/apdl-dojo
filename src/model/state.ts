@@ -2,6 +2,23 @@ import type { EntityKind, Id, ModelState, Selection, WorkingPlane } from './type
 
 export const ENTITY_KINDS: EntityKind[] = ['kp', 'line', 'area', 'volu', 'node', 'elem'];
 
+/**
+ * Entity map that remembers a lower bound of the first free number, so "lowest available number" lookups are
+ * O(1) amortised instead of scanning from 1. Invariant: every id below `lowFree` is occupied.
+ * (After structured cloning to the main thread this becomes a plain Map, which is fine for rendering.)
+ */
+export class IdMap<V> extends Map<Id, V> {
+  lowFree = 1;
+  delete(key: Id): boolean {
+    if (key < this.lowFree) this.lowFree = Math.max(1, key);
+    return super.delete(key);
+  }
+  clear(): void {
+    this.lowFree = 1;
+    super.clear();
+  }
+}
+
 export function emptySelection(): Selection {
   return { kp: new Set(), line: new Set(), area: new Set(), volu: new Set(), node: new Set(), elem: new Set() };
 }
@@ -14,12 +31,12 @@ export function createEmptyModel(): ModelState {
   return {
     title: '',
     processor: 'BEGIN',
-    kps: new Map(),
-    lines: new Map(),
-    areas: new Map(),
-    volus: new Map(),
-    nodes: new Map(),
-    elems: new Map(),
+    kps: new IdMap(),
+    lines: new IdMap(),
+    areas: new IdMap(),
+    volus: new IdMap(),
+    nodes: new IdMap(),
+    elems: new IdMap(),
     etypes: new Map(),
     mats: new Map(),
     reals: new Map(),
@@ -57,9 +74,16 @@ export function entityMap(m: ModelState, kind: EntityKind): Map<Id, unknown> {
 
 /** ANSYS numbering: lowest available number >= NUMSTR start. */
 export function nextId(m: ModelState, kind: EntityKind): Id {
-  const map = entityMap(m, kind);
-  let n = m.numstr[kind] ?? 1;
+  const map = entityMap(m, kind) as Map<Id, unknown> & { lowFree?: number };
+  let n = map.lowFree ?? 1;
   while (map.has(n)) n++;
+  if (map.lowFree !== undefined) map.lowFree = n;
+  const start = m.numstr[kind];
+  if (start && start > n) {
+    let k = start;
+    while (map.has(k)) k++;
+    return k;
+  }
   return n;
 }
 
