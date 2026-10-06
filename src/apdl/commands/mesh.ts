@@ -172,7 +172,7 @@ reg('ESIZE', (c, a) => {
   c.m.cur.esizeNdiv = size > 0 ? 0 : ndiv;
 }, [...PREP]);
 reg('LESIZE', (c, a) => {
-  const ids = a.entities('line', 0, 'none');
+  const ids = a.entity1('line', 0);
   if (!ids.length) throw new ApdlError('LESIZE', 'LESIZE: NL1 must be a line number, ALL, or a component.');
   const size = a.num(1, 0), ndiv = a.int(3, 0), space = a.num(4, 0);
   const kforc = a.int(5, 1);
@@ -190,7 +190,7 @@ reg('LESIZE', (c, a) => {
 }, [...PREP]);
 reg('AESIZE', (c, a) => {
   const size = a.num(1, 0);
-  for (const id of a.entities('area', 0)) { const ar = c.m.areas.get(id); if (ar) ar.esize = size || undefined; }
+  for (const id of a.entity1('area', 0)) { const ar = c.m.areas.get(id); if (ar) ar.esize = size || undefined; }
 }, [...PREP]);
 reg(['KESIZE', 'SMRTSIZE', 'DESIZE', 'MOPT', 'EXTOPT'], (c) => c.note(`${c.cmd} is accepted; the trainer mesher uses ESIZE/LESIZE only.`), [...PREP]);
 reg('MSHAPE', (c, a) => {
@@ -214,6 +214,9 @@ function listOrSelected(c: Ctx, a: Args, kind: 'volu' | 'area' | 'line' | 'kp'):
 
 function afterMesh(c: Ctx, what: string, r: { count: number; notes: string[]; elems: number }) {
   for (const n of r.notes) c.note(n);
+  if (r.count && !c.m.cur.esize && !c.m.cur.esizeNdiv && ![...c.m.lines.values()].some((l) => l.mesh)) {
+    c.note('No ESIZE or LESIZE was set: a default element size (1/20 of the model size) was used.  Set ESIZE before meshing to control the element count.', 'MESH_DEFAULT_SIZE');
+  }
   c.out(meshSummary(c.m, what, r.count));
   if (r.count && !r.elems) c.warn('MESH_EMPTY', `No elements were generated for the selected ${what.toLowerCase()}.`);
 }

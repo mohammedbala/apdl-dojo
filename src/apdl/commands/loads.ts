@@ -89,7 +89,7 @@ reg('FDELE', (c, a) => {
 // ------------------------------------------------------------------ solid-model loads
 function solidLoad(c: Ctx, a: Args, cmd: 'DK' | 'DL' | 'DA' | 'FK', kind: 'kp' | 'line' | 'area', labIdx: number, valIdx: number) {
   const m = c.m;
-  const ids = a.entities(kind, 0);
+  const ids = a.entity1(kind, 0);
   for (const id of ids) c.ensureExists(kind, id);
   const lab = a.lab(labIdx, cmd === 'FK' ? '' : 'ALL');
   if (cmd === 'FK' ? !FORCE_LABELS.has(lab) : !DOF_LABELS.has(lab) && lab !== 'SYMM' && lab !== 'ASYM') {
@@ -107,7 +107,7 @@ reg('FK', (c, a) => solidLoad(c, a, 'FK', 'kp', 1, 2), [...PREP_SOLU]);
 
 reg('SFA', (c, a) => {
   const m = c.m;
-  const ids = a.entities('area', 0);
+  const ids = a.entity1('area', 0);
   for (const id of ids) c.ensureExists('area', id);
   const lab = a.lab(2, 'PRES');
   if (lab !== 'PRES') throw new ApdlError('SF_LABEL', `SFA label ${lab} is not supported (use PRES).`);
@@ -115,13 +115,13 @@ reg('SFA', (c, a) => {
   for (const id of ids) m.solidLoads.push({ cmd: 'SFA', entity: id, lab, value, line: c.line });
 }, [...PREP_SOLU]);
 reg('SFL', (c, a) => {
-  const ids = a.entities('line', 0);
+  const ids = a.entity1('line', 0);
   for (const id of ids) c.ensureExists('line', id);
   for (const id of ids) c.m.solidLoads.push({ cmd: 'SFL', entity: id, lab: a.lab(1, 'PRES'), value: a.num(2, 0), line: c.line });
 }, [...PREP_SOLU]);
 reg('SFE', (c, a) => {
   const m = c.m;
-  const ids = a.entities('elem', 0).filter((id) => m.elems.has(id));
+  const ids = a.entity1('elem', 0).filter((id) => m.elems.has(id));
   const face = a.int(1, 1) || 1;
   const lab = a.lab(2, 'PRES');
   const value = a.num(4, 0);

@@ -117,3 +117,13 @@ describe('grader', () => {
     expect(s.match).toBe(false);
   });
 });
+
+describe('single-entity fields', () => {
+  it('DK / FK / LESIZE with a numbered entity followed by a label or size', () => {
+    const r = run('/PREP7\nK,1 $ K,2,8 $ L,1,2\nET,1,BEAM188\nSECTYPE,1,BEAM,RECT $ SECDATA,0.3,0.5\nLESIZE,1,0.5\nLMESH,1\nDK,1,ALL,0\nFK,2,FZ,-1000');
+    expect(r.warnings).toEqual([]);
+    expect(r.s.counts.elem).toBe(16);
+    expect(r.s.bc.dNodes).toBe(1);
+    expect(r.s.bc.fSum[2]).toBe(-1000);
+  });
+});

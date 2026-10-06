@@ -227,7 +227,7 @@ reg('EDELE', (c, a) => {
 
 reg('EMODIF', (c, a) => {
   const m = c.m;
-  const ids = a.entities('elem', 0).filter((id) => m.elems.has(id));
+  const ids = a.entity1('elem', 0).filter((id) => m.elems.has(id));
   const what = a.lab(1);
   const key = ({ MAT: 'mat', TYPE: 'type', REAL: 'real', SECN: 'secnum', ESYS: 'esys' } as const)[what as 'MAT'];
   if (!key) throw new ApdlError('EMODIF', 'EMODIF: only MAT, TYPE, REAL, SECN and ESYS modifications are supported in the trainer.');
