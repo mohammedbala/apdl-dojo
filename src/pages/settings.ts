@@ -21,6 +21,7 @@ export function settingsPage({ root }: RouteCtx) {
     body.append(
       toggle('Sound', 'Muted blips on run, error and clear (WebAudio).', st.sound, (v) => { updateSettings({ sound: v }); if (v) play('ok'); }),
       toggle('Unlock all tracks', 'Ignore unlock rules for t7–t10.', st.unlockAll, (v) => updateSettings({ unlockAll: v })),
+      toggle('Argument hints', 'While typing a command, show its fields, what the current one means and its allowed values.', st.argHints, (v) => updateSettings({ argHints: v })),
       h('div', { class: 'card stack' },
         h('div', null, 'Save data'),
         h('div', { class: 'faint small' }, `${s.xp.total} XP · ${Object.keys(s.challenges).length} challenges touched · ${s.drills.sessions.length} drill sessions · ${s.speedruns.any.length} speedruns · created ${new Date(s.createdAt).toLocaleDateString()}`),

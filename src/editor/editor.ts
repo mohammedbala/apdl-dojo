@@ -10,6 +10,9 @@ import { bracketMatching } from '@codemirror/language';
 import { apdl } from './apdl-lang';
 import { allCommandNames } from '../engine';
 import { COMMAND_INFO } from '../content/commands';
+import { argDoc } from '../content/argdocs';
+import { argumentCompletion, signatureHelp } from './signature';
+import { getSettings } from '../app/persist';
 
 export interface EditorDiagnostic {
   line: number;
@@ -28,6 +31,8 @@ export interface EditorOptions {
   onPasteBlocked?: () => void;
   readOnly?: boolean;
   placeholder?: string;
+  /** show the argument tooltip while typing (default: the user's setting) */
+  argHints?: boolean;
 }
 
 // ------------------------------------------------------------------ diagnostics state
@@ -91,10 +96,46 @@ const diagGutter = gutter({
 });
 
 // ------------------------------------------------------------------ autocomplete
+function commandInfoDom(name: string): HTMLElement | null {
+  const info = COMMAND_INFO.get(name);
+  if (!info) return null;
+  const root = document.createElement('div');
+  root.className = 'cm-apdl-cinfo';
+  const sig = document.createElement('div');
+  sig.className = 'ci-sig';
+  sig.textContent = info.signature.split(',').join(', ');
+  const sum = document.createElement('div');
+  sum.className = 'ci-sum';
+  sum.textContent = info.summary + (info.abbrev ? `  (short: ${info.abbrev})` : '');
+  root.append(sig, sum);
+  if (info.args.length) {
+    const list = document.createElement('div');
+    list.className = 'ci-args';
+    for (const a of info.args.slice(0, 12)) {
+      const row = document.createElement('div');
+      const b = document.createElement('b');
+      b.textContent = a.name;
+      row.append(b, document.createTextNode(` ${argDoc(info.name, a.name)?.desc ?? ''}${a.dflt !== undefined && a.dflt !== '' ? ` (blank = ${a.dflt})` : ''}`));
+      list.append(row);
+    }
+    if (info.args.length > 12) list.append(document.createTextNode(`… ${info.args.length - 12} more`));
+    root.append(list);
+  }
+  return root;
+}
+
 const OPTIONS = allCommandNames().map((name) => {
   const info = COMMAND_INFO.get(name);
-  return { label: name, type: 'keyword', detail: info?.signature.slice(name.length) ?? '', info: info?.summary, boost: info ? 1 : 0 };
+  return {
+    label: name,
+    type: 'keyword',
+    detail: info ? info.signature.slice(name.length).split(',').join(', ') : '',
+    info: info ? () => commandInfoDom(name) : undefined,
+    boost: info ? 1 : 0,
+  };
 });
+
+const OPTION_NAMES = new Set(OPTIONS.map((o) => o.label));
 
 function commandCompletion(ctx: CompletionContext): CompletionResult | null {
   const word = ctx.matchBefore(/[/*]?[A-Za-z][A-Za-z0-9_]*/);
@@ -104,11 +145,21 @@ function commandCompletion(ctx: CompletionContext): CompletionResult | null {
   // only complete the first token of a statement
   if (!/(^|\$)\s*$/.test(before)) return null;
   if (word.from === word.to && !ctx.explicit) return null;
-  return { from: word.from, options: OPTIONS, validFor: /^[/*]?[A-Za-z0-9_]*$/ };
+  // a complete, unambiguous command name was typed: hide the list so Enter starts a new line
+  const up = word.text.toUpperCase();
+  if (!ctx.explicit && OPTION_NAMES.has(up) && !OPTIONS.some((o) => o.label !== up && o.label.startsWith(up))) return null;
+  return { from: word.from, options: OPTIONS };
 }
 
 const theme = EditorView.theme({
   '&': { height: '100%' },
+  '.cm-tooltip-autocomplete .cm-completionDetail': { color: 'var(--fg-muted, #7f8a9c)', fontStyle: 'normal', marginLeft: '0.6em' },
+  '.cm-tooltip.cm-completionInfo': { background: 'var(--bg-2, #1a2130)', border: '1px solid var(--line-2, #33405a)', maxWidth: '420px', padding: '6px 9px' },
+  '.cm-apdl-cinfo': { fontSize: '12px', lineHeight: '1.45' },
+  '.cm-apdl-cinfo .ci-sig': { fontFamily: 'var(--mono, monospace)', color: 'var(--accent, #ffb000)', marginBottom: '3px' },
+  '.cm-apdl-cinfo .ci-sum': { color: 'var(--fg, #d7dee9)', marginBottom: '4px' },
+  '.cm-apdl-cinfo .ci-args': { color: 'var(--fg-muted, #7f8a9c)' },
+  '.cm-apdl-cinfo .ci-args b': { color: 'var(--accent-2, #4cc9f0)', fontWeight: '600' },
   '.cm-content': { caretColor: 'var(--accent)', padding: '8px 0' },
   '.cm-line': { padding: '0 12px 0 6px' },
 }, { dark: true });
@@ -132,7 +183,8 @@ export class ApdlEditor {
       apdl(),
       diagField,
       theme,
-      autocompletion({ override: [commandCompletion], activateOnTyping: true, icons: false }),
+      autocompletion({ override: [commandCompletion, argumentCompletion], activateOnTyping: true, icons: false }),
+      opts.argHints ?? getSettings().argHints ?? true ? signatureHelp() : [],
       Prec.highest(keymap.of([
         { key: 'Mod-Enter', run: () => { this.opts.onRun?.(); return true; } },
       ])),

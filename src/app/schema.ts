@@ -127,8 +127,10 @@ export interface Settings {
   drillSet: string;
   drillFormat: string;
   drillStrict: string;
+  /** argument hints tooltip in the editor */
+  argHints: boolean;
 }
 
 export function defaultSettings(): Settings {
-  return { sound: false, unlockAll: false, drillSet: 'all', drillFormat: '30c', drillStrict: 'relaxed' };
+  return { sound: false, unlockAll: false, drillSet: 'all', drillFormat: '30c', drillStrict: 'relaxed', argHints: true };
 }
