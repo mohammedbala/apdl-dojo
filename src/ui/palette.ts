@@ -18,6 +18,7 @@ function items(): Item[] {
     { label: 'Tracks', hint: 'page', href: '#/tracks' },
     { label: 'Daily challenge', hint: 'page', href: '#/daily' },
     { label: 'Speedrun', hint: 'page', href: '#/speedrun' },
+    { label: 'Sandbox (free play)', hint: 'page', href: '#/sandbox' },
     { label: 'Error hunt', hint: 'page', href: '#/errorhunt' },
     { label: 'Stats', hint: 'page', href: '#/stats' },
     { label: 'Achievements', hint: 'page', href: '#/achievements' },

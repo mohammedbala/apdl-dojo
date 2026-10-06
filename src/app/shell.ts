@@ -9,7 +9,7 @@ import type { Router } from './router';
 
 export const NAV: [string, string][] = [
   ['Home', '#/'], ['Drills', '#/drills'], ['Flashcards', '#/flashcards'], ['Tracks', '#/tracks'], ['Daily', '#/daily'],
-  ['Speedrun', '#/speedrun'], ['Stats', '#/stats'], ['Achievements', '#/achievements'], ['Reference', '#/reference'], ['Settings', '#/settings'],
+  ['Speedrun', '#/speedrun'], ['Sandbox', '#/sandbox'], ['Stats', '#/stats'], ['Achievements', '#/achievements'], ['Reference', '#/reference'], ['Settings', '#/settings'],
 ];
 
 export const LOGO_SVG = `<svg width="20" height="20" viewBox="0 0 32 32" fill="none" stroke="#ffb000" stroke-width="2" stroke-linejoin="round"><path d="M16 3 L28 9.5 L28 22.5 L16 29 L4 22.5 L4 9.5 Z"/><path d="M4 9.5 L16 16 L28 9.5 M16 16 L16 29"/></svg>`;

@@ -26,6 +26,7 @@ import { statsPage } from './pages/stats';
 import { achievementsPage } from './pages/achievements';
 import { settingsPage } from './pages/settings';
 import { referencePage } from './pages/reference';
+import { sandboxPage } from './pages/sandbox';
 
 const { corruptBackup } = initPersistence();
 installHotkeys();
@@ -55,6 +56,7 @@ router
   .add('/achievements', achievementsPage)
   .add('/settings', settingsPage)
   .add('/reference', referencePage)
+  .add('/sandbox', sandboxPage, { full: true })
   .notFound(({ root, path }) => comingSoon(root, 'Not found', `No page at ${path}.`, { href: '#/', label: 'Home' }));
 
 router.start();
